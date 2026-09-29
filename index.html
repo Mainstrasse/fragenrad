@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hauskirche Fragenrad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800;900&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1b1430">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Fragenrad">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<script src="confetti.min.js"></script>
+<style>
+  :root {
+    --bg: #1b1430;
+    --bg2: #2a1d47;
+    --surface: #fff8ee;
+    --surface-ink: #2b2233;
+    --ink: #f7f1ff;
+    --muted: #b9acd6;
+    --line: rgba(255,255,255,.14);
+    --accent: #ffb347;
+    --accent-ink: #2b1a00;
+    --freizeit: #4fae72;
+    --sport: #3a86d1;
+    --church: #e2583e;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font-family: 'Nunito', system-ui, sans-serif;
+    color: var(--ink);
+    background: radial-gradient(1200px 700px at 30% 20%, var(--bg2), var(--bg));
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    overflow: hidden;
+  }
+  button { font: inherit; cursor: pointer; }
+
+  /* Kopfzeile */
+  header {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 14px 28px;
+    border-bottom: 1px solid var(--line);
+  }
+  .brand { font-weight: 900; font-size: 1.5rem; letter-spacing: .3px; }
+  .brand span { color: var(--accent); }
+  .brand-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+  .group-pick {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,.06); border: 1px solid var(--line);
+    border-radius: 999px; padding: 4px 6px 4px 14px;
+  }
+  .group-pick .label { color: var(--muted); font-weight: 600; font-size: .9rem; }
+  .group-pick select {
+    font: inherit; font-weight: 800; font-size: 1rem; color: var(--ink);
+    background: transparent; border: none; padding: 4px 6px; max-width: 24ch;
+  }
+  .group-pick select option { color: #2b2233; background: #fff8ee; }
+  .person {
+    display: flex; align-items: center; gap: 14px;
+    background: rgba(255,255,255,.06); border: 1px solid var(--line);
+    border-radius: 999px; padding: 6px 8px 6px 20px;
+  }
+  .person .label { color: var(--muted); font-weight: 600; font-size: 1rem; }
+  .person .name { font-weight: 900; font-size: 1.7rem; min-width: 5ch; }
+  .person .name.rolling { color: var(--muted); }
+
+  /* Hauptbereich */
+  main {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    align-items: center;
+    gap: 3vw;
+    padding: 2vh 4vw;
+    min-height: 0;
+  }
+  .wheel-side { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+  .wheel {
+    position: relative;
+    width: min(36vw, 60vh);
+    aspect-ratio: 1;
+  }
+  .rotor {
+    width: 100%; height: 100%;
+    transition: transform 4.2s cubic-bezier(.12,.72,.14,1);
+    filter: drop-shadow(0 18px 30px rgba(0,0,0,.45));
+  }
+  .rotor svg { width: 100%; height: 100%; display: block; }
+  .pointer {
+    position: absolute; left: 50%; top: -14px; transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 20px solid transparent; border-right: 20px solid transparent;
+    border-top: 38px solid var(--accent);
+    filter: drop-shadow(0 4px 4px rgba(0,0,0,.4));
+    z-index: 2;
+  }
+  .hub {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 24%; aspect-ratio: 1; border-radius: 50%;
+    background: var(--surface); color: var(--surface-ink);
+    border: 5px solid var(--bg);
+    font-weight: 900; font-size: clamp(.8rem, 1.3vw, 1.2rem);
+    box-shadow: 0 6px 16px rgba(0,0,0,.35);
+  }
+  .hub:disabled { cursor: default; opacity: .9; }
+  .chips { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .chip {
+    border: 2px solid var(--c); background: transparent; color: var(--ink);
+    border-radius: 999px; padding: 6px 16px; font-weight: 800; font-size: 1rem;
+  }
+  .chip:hover { background: var(--c); }
+
+  /* Karte */
+  .scene { perspective: 1400px; width: 100%; height: min(62vh, 520px); }
+  .card {
+    position: relative; width: 100%; height: 100%;
+    transform-style: preserve-3d;
+    transition: transform .8s cubic-bezier(.2,.9,.3,1.2);
+  }
+  .card.flipped { transform: rotateY(180deg); }
+  .face {
+    position: absolute; inset: 0; backface-visibility: hidden;
+    border-radius: 28px; padding: 5% 7%;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    text-align: center;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,.6);
+  }
+  .front {
+    background: rgba(255,255,255,.05);
+    border: 3px dashed var(--line);
+    color: var(--muted);
+  }
+  .front .big { font-size: clamp(3rem, 7vw, 6rem); line-height: 1; margin-bottom: 12px; }
+  .front p { font-size: clamp(1.1rem, 1.8vw, 1.6rem); font-weight: 700; margin: 0; }
+  .back {
+    transform: rotateY(180deg);
+    background: var(--surface); color: var(--surface-ink);
+    border-top: 14px solid var(--cat, var(--accent));
+  }
+  .meta { display: flex; gap: 10px; align-items: center; margin-bottom: 3vh; }
+  .tag {
+    background: var(--cat); color: #fff;
+    border-radius: 999px; padding: 6px 18px;
+    font-weight: 900; font-size: clamp(.9rem, 1.3vw, 1.2rem); letter-spacing: 1.5px; text-transform: uppercase;
+  }
+  .level { color: #7a6d86; font-weight: 800; font-size: clamp(.9rem, 1.2vw, 1.1rem); }
+  .question {
+    font-weight: 800; line-height: 1.3;
+    font-size: clamp(1.5rem, 2.7vw, 2.9rem);
+    text-wrap: balance;
+  }
+  .for-whom { margin-top: 3vh; color: #7a6d86; font-weight: 700; font-size: clamp(1rem, 1.4vw, 1.3rem); }
+  .for-whom b { color: var(--surface-ink); }
+
+  /* Fußleiste */
+  footer {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    padding: 12px 28px; border-top: 1px solid var(--line);
+  }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn {
+    border: 1px solid var(--line); background: rgba(255,255,255,.07); color: var(--ink);
+    border-radius: 12px; padding: 10px 16px; font-weight: 800; font-size: .98rem;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn:hover { background: rgba(255,255,255,.14); }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+  .btn.primary:hover { filter: brightness(1.08); }
+  .btn:disabled { opacity: .5; cursor: default; }
+  kbd {
+    font-family: inherit; font-size: .75rem; font-weight: 800;
+    border: 1px solid currentColor; border-radius: 5px; padding: 0 5px; opacity: .6;
+  }
+  .status { color: var(--muted); font-weight: 600; font-size: .95rem; }
+
+  /* Einstellungen */
+  dialog {
+    width: min(760px, calc(100vw - 32px)); max-height: calc(100vh - 48px);
+    border: none; border-radius: 20px; padding: 0;
+    background: var(--surface); color: var(--surface-ink);
+    box-shadow: 0 30px 80px rgba(0,0,0,.5);
+    color-scheme: light;
+  }
+  dialog::backdrop { background: rgba(10,6,20,.6); }
+  .dlg-head { display: flex; justify-content: space-between; align-items: center; padding: 20px 26px 0; }
+  .dlg-head h2 { margin: 0; font-size: 1.5rem; font-weight: 900; }
+  .dlg-body { padding: 8px 26px 20px; overflow: auto; max-height: calc(100vh - 170px); }
+  .dlg-foot { display: flex; justify-content: space-between; gap: 10px; padding: 14px 26px 20px; border-top: 1px solid #eadfcf; }
+  fieldset { border: none; padding: 0; margin: 18px 0 0; }
+  legend { font-weight: 900; font-size: 1.05rem; margin-bottom: 8px; }
+  .hint { color: #7a6d86; font-size: .9rem; margin: -4px 0 8px; }
+  textarea, input[type=text], select {
+    width: 100%; font: inherit; color: inherit;
+    border: 1.5px solid #dccfbd; border-radius: 10px; padding: 10px 12px; background: #fff;
+  }
+  textarea { min-height: 150px; resize: vertical; }
+  .toggles { display: flex; gap: 8px; flex-wrap: wrap; }
+  .toggles label {
+    display: inline-flex; align-items: center; gap: 8px;
+    border: 1.5px solid #dccfbd; border-radius: 999px; padding: 7px 14px; font-weight: 700; background: #fff;
+  }
+  .group-row { display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 8px; }
+  .add-row { display: grid; grid-template-columns: 140px 140px 1fr auto; gap: 8px; }
+  .dlg .btn { color: var(--surface-ink); background: #f1e7d8; border-color: #e2d5c2; }
+  .dlg .btn.primary { background: var(--accent); color: var(--accent-ink); }
+  .own-list { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 6px; }
+  .own-list li {
+    display: flex; gap: 10px; align-items: center; justify-content: space-between;
+    background: #fff; border: 1px solid #eadfcf; border-radius: 10px; padding: 8px 10px 8px 14px;
+  }
+  .own-list .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+  .own-list .txt { flex: 1; }
+  .own-list button { border: none; background: none; font-size: 1.1rem; color: #a0413a; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%) translateY(20px);
+    background: var(--surface); color: var(--surface-ink);
+    padding: 12px 20px; border-radius: 12px; font-weight: 800;
+    box-shadow: 0 12px 30px rgba(0,0,0,.4);
+    opacity: 0; pointer-events: none; transition: all .3s; z-index: 50;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 860px) {
+    body { overflow: auto; }
+    header { padding: 12px 16px; flex-wrap: wrap; }
+    main { grid-template-columns: 1fr; padding: 16px; gap: 20px; }
+    .wheel { width: min(80vw, 380px); }
+    .scene { height: 380px; }
+    footer { padding: 12px 16px; }
+    .add-row, .group-row { grid-template-columns: 1fr 1fr; }
+    .add-row input { grid-column: 1 / -1; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand-row">
+    <div class="brand">Hauskirche <span>Fragenrad</span></div>
+    <label class="group-pick" for="groupSel">
+      <span class="label">Gruppe</span>
+      <select id="groupSel" title="Gruppe wechseln"></select>
+    </label>
+  </div>
+  <div class="person">
+    <span class="label">Dran ist:</span>
+    <span class="name" id="personName">–</span>
+    <button class="btn primary" id="btnPerson">🎲 Person ziehen <kbd>N</kbd></button>
+  </div>
+</header>
+
+<main>
+  <section class="wheel-side">
+    <div class="wheel">
+      <div class="pointer"></div>
+      <div class="rotor" id="rotor"></div>
+      <button class="hub" id="hub" title="Rad drehen">DREHEN</button>
+    </div>
+    <div class="chips" id="chips"></div>
+  </section>
+
+  <section class="scene">
+    <div class="card" id="card">
+      <div class="face front">
+        <div class="big">🎡</div>
+        <p>Dreht das Rad – die Frage erscheint hier.</p>
+      </div>
+      <div class="face back" id="back">
+        <div class="meta">
+          <span class="tag" id="qTag"></span>
+          <span class="level" id="qLevel"></span>
+        </div>
+        <div class="question" id="qText"></div>
+        <div class="for-whom" id="qFor"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="actions">
+    <button class="btn primary" id="btnSpin">🎡 Rad drehen <kbd>Leertaste</kbd></button>
+    <button class="btn" id="btnOther">🔄 Andere Frage <kbd>A</kbd></button>
+    <button class="btn" id="btnFull">⛶ Vollbild <kbd>F</kbd></button>
+    <button class="btn" id="btnSettings">⚙️ Einstellungen</button>
+  </div>
+  <div class="status" id="status"></div>
+</footer>
+
+<dialog id="dlg" class="dlg">
+  <div class="dlg-head">
+    <h2>Einstellungen</h2>
+    <button class="btn" id="dlgClose">✕</button>
+  </div>
+  <div class="dlg-body">
+    <fieldset>
+      <legend>Gruppe</legend>
+      <p class="hint" id="syncHint"></p>
+      <div class="group-row">
+        <select id="dlgGroup" aria-label="Gruppe auswählen"></select>
+        <input type="text" id="groupName" placeholder="Name der Gruppe" aria-label="Name der Gruppe">
+        <button class="btn" id="btnNewGroup">+ Neue Gruppe</button>
+        <button class="btn" id="btnDelGroup">🗑 Löschen</button>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Teilnehmende dieser Gruppe</legend>
+      <p class="hint">Ein Name pro Zeile. „Person ziehen“ wählt zufällig – jede Person kommt einmal dran, bevor jemand zum zweiten Mal gezogen wird. Jede Gruppe merkt sich außerdem, welche Fragen sie schon hatte.</p>
+      <textarea id="names" placeholder="Anna&#10;Ben&#10;Chiara"></textarea>
+    </fieldset>
+    <fieldset>
+      <legend>Kategorien auf dem Rad</legend>
+      <div class="toggles" id="catToggles"></div>
+    </fieldset>
+    <fieldset>
+      <legend>Tiefe der Fragen</legend>
+      <p class="hint">Für neue Leute eher „Locker“, für eine vertraute Runde auch „Tiefgang“.</p>
+      <div class="toggles" id="levelToggles"></div>
+    </fieldset>
+    <fieldset>
+      <legend>Effekte</legend>
+      <div class="toggles"><label><input type="checkbox" id="fireworks"> Feuerwerk beim Aufdecken</label></div>
+    </fieldset>
+    <fieldset>
+      <legend>Eigene Fragen</legend>
+      <div class="add-row">
+        <select id="newCat"></select>
+        <select id="newLevel"></select>
+        <input type="text" id="newText" placeholder="Neue Frage eingeben …">
+        <button class="btn primary" id="btnAdd">Hinzufügen</button>
+      </div>
+      <ul class="own-list" id="ownList"></ul>
+    </fieldset>
+  </div>
+  <div class="dlg-foot">
+    <button class="btn" id="btnReset">↺ Gespielte Fragen &amp; Personen dieser Gruppe zurücksetzen</button>
+    <button class="btn primary" id="dlgDone">Fertig</button>
+  </div>
+</dialog>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const CATS = {
+  freizeit: { name: 'Freizeit', emoji: '🌿', color: 'var(--freizeit)', hex: '#4fae72' },
+  sport:    { name: 'Sport',    emoji: '⚽', color: 'var(--sport)',    hex: '#3a86d1' },
+  church:   { name: 'Church',   emoji: '🔥', color: 'var(--church)',   hex: '#e2583e' }
+};
+const LEVELS = { 1: 'Locker', 2: 'Persönlich', 3: 'Tiefgang' };
+
+const BUILTIN = [
+  // Freizeit
+  ['freizeit', 1, 'Wie sieht für dich ein perfekter freier Samstag aus – ganz ohne Verpflichtungen?'],
+  ['freizeit', 1, 'Welches Buch, welchen Film oder welche Serie kannst du gerade empfehlen?'],
+  ['freizeit', 1, 'Was war dein schönster Urlaub bisher – und was hat ihn so besonders gemacht?'],
+  ['freizeit', 1, 'Was ist dein liebstes Hobby und wie bist du dazu gekommen?'],
+  ['freizeit', 1, 'Was kochst oder backst du am liebsten – und wofür wirst du dafür gelobt?'],
+  ['freizeit', 1, 'Berge oder Meer, Stadt oder Land – wo fühlst du dich im Urlaub am wohlsten?'],
+  ['freizeit', 1, 'Welche Musik läuft bei dir, wenn du alleine im Auto sitzt?'],
+  ['freizeit', 2, 'Welches Hobby würdest du gerne anfangen, wenn du mehr Zeit hättest?'],
+  ['freizeit', 2, 'Gibt es ein Hobby oder Talent von früher, das du gerne wieder aufleben lassen würdest?'],
+  ['freizeit', 2, 'An welchem Ort kannst du richtig abschalten und neue Kraft tanken?'],
+  ['freizeit', 2, 'Welches Buch, welcher Podcast oder Film hat deine Sicht auf das Leben zuletzt positiv geprägt?'],
+  ['freizeit', 2, 'Wenn Zeit und Geld keine Rolle spielten: Was würdest du morgen sofort ausprobieren?'],
+  ['freizeit', 3, 'Fällt es dir leicht, Pausen zu machen – oder bekommst du schnell ein schlechtes Gewissen?'],
+  ['freizeit', 3, 'Gott hat den Sabbat als Ruhetag geschenkt. Wie sieht echte Ruhe für dich aus – und wie oft gönnst du sie dir?'],
+
+  // Sport
+  ['sport', 1, 'Welche Sportart hast du als Kind gemacht – und machst du sie heute noch?'],
+  ['sport', 1, 'Welches Sportereignis hast du nie vergessen – live oder vor dem Fernseher?'],
+  ['sport', 1, 'Für welchen Verein oder welche Mannschaft schlägt dein Herz?'],
+  ['sport', 1, 'Bist du eher aktiv dabei oder Experte vom Sofa aus?'],
+  ['sport', 1, 'Welche Sportart würdest du gerne einmal ausprobieren?'],
+  ['sport', 1, 'Was war dein lustigster oder peinlichster Moment beim Sport?'],
+  ['sport', 2, 'Welche Bewegung tut dir körperlich und seelisch am besten – und wie fühlst du dich danach?'],
+  ['sport', 2, 'Auf welche sportliche oder körperliche Herausforderung bist du stolz?'],
+  ['sport', 2, 'Bist du eher Teamplayer oder Einzelkämpfer – und wie zeigt sich das in deinem Alltag?'],
+  ['sport', 2, 'Was hast du durch Sport fürs Leben gelernt?'],
+  ['sport', 3, 'Paulus vergleicht den Glauben mit einem Wettlauf (1. Korinther 9,24). Wo brauchst du gerade Ausdauer?'],
+  ['sport', 3, 'Was hilft dir, dranzubleiben, wenn es anstrengend wird – im Sport und im Glauben?'],
+  ['sport', 3, 'Wie gehst du mit Niederlagen um – und was hat dir schon einmal geholfen, wieder aufzustehen?'],
+
+  // Church
+  ['church', 1, 'Wie bist du in unsere Gemeinde oder Hauskirche gekommen?'],
+  ['church', 1, 'Welches Lobpreislied geht dir gerade nicht aus dem Kopf?'],
+  ['church', 1, 'Welche biblische Geschichte mochtest du als Kind am liebsten?'],
+  ['church', 1, 'Mit welcher Person aus der Bibel würdest du gerne einen Tag verbringen – und was würdest du sie fragen?'],
+  ['church', 1, 'Was schätzt du an unserer Hausgruppe besonders?'],
+  ['church', 2, 'Wie bist du zum Glauben an Jesus gekommen?'],
+  ['church', 2, 'Wo hast du Gott in der letzten Woche im Alltag erlebt?'],
+  ['church', 2, 'Welcher Bibelvers begleitet dich gerade – und was bedeutet er dir?'],
+  ['church', 2, 'Welcher Mensch hat deinen Glauben besonders geprägt?'],
+  ['church', 2, 'Was hilft dir, im Gebet dranzubleiben?'],
+  ['church', 2, 'Welche Begegnung in der Gemeinde hat dich zuletzt ermutigt?'],
+  ['church', 3, 'Wo hast du das Wirken des Heiligen Geistes in deinem Leben besonders erlebt?'],
+  ['church', 3, 'Gibt es eine Gebetserhörung, die dich bis heute begleitet?'],
+  ['church', 3, 'Welche Gabe hat Gott dir geschenkt – und wie möchtest du sie einsetzen?'],
+  ['church', 3, 'Gab es eine Zeit, in der Gott dir fern vorkam? Was hat dir da durchgeholfen?'],
+  ['church', 3, 'Wofür dürfen wir als Gruppe heute für dich beten?']
+].map(([c, l, t], i) => ({ id: 'b' + i, c, l, t }));
+
+// ---------- Zustand ----------
+const KEY = 'hauskirche-fragenrad-v1';
+function load() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } }
+const newId = () => 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const strArr = v => Array.isArray(v) ? v.filter(x => typeof x === 'string') : [];
+const S = Object.assign({
+  cats: Object.keys(CATS), levels: [1, 2], fireworks: true,
+  custom: [], groups: [], active: null
+}, load());
+// Übernahme aus der Version ohne Gruppen
+if (!S.groups.length) {
+  S.groups.push({ id: newId(), name: 'Meine Hausgruppe', names: strArr(S.names), spoke: strArr(S.spoke), used: strArr(S.used), created: Date.now() });
+}
+delete S.names; delete S.spoke; delete S.used;
+if (!S.groups.some(g => g.id === S.active)) S.active = S.groups[0].id;
+const G = () => S.groups.find(g => g.id === S.active);
+
+// Gespeichert wird immer im Browser und zusätzlich im Konto, sobald die Seite online läuft
+let cloud = null;
+const chains = {};
+function write(ref, data) {
+  chains[ref.path] = (chains[ref.path] || Promise.resolve())
+    .then(() => ref.set(data))
+    .catch(e => console.warn('Speichern im Konto fehlgeschlagen', e));
+}
+function saveLocal() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+function saveGroup(g = G()) {
+  saveLocal();
+  if (cloud) write(cloud.groups.doc(g.id), { name: g.name, names: g.names, spoke: g.spoke, used: g.used, created: g.created || 0 });
+}
+function saveProfile() {
+  saveLocal();
+  if (cloud) write(cloud.profile, { cats: S.cats, levels: S.levels, fireworks: S.fireworks, custom: S.custom, active: S.active });
+}
+
+async function connectCloud() {
+  if (!window.claude?.use) return;
+  const [db, user] = await Promise.all([claude.use('db'), claude.use('user')]);
+  const uid = db && user ? await user.id() : null;
+  if (!uid) return;
+  const profile = db.doc('data/users/' + uid + '/profile');
+  const groups = profile.collection('groups');
+  const [p, gs] = await Promise.all([profile.get(), groups.get()]);
+  cloud = { profile, groups };
+  if (p.exists) {
+    const d = p.data();
+    if (Array.isArray(d.cats)) S.cats = d.cats.filter(c => CATS[c]);
+    if (Array.isArray(d.levels)) S.levels = d.levels.filter(l => LEVELS[l]);
+    if (typeof d.fireworks === 'boolean') S.fireworks = d.fireworks;
+    if (Array.isArray(d.custom)) S.custom = d.custom.filter(q => q && typeof q.id === 'string' && CATS[q.c] && LEVELS[q.l] && typeof q.t === 'string');
+    if (typeof d.active === 'string') S.active = d.active;
+  } else saveProfile();
+  if (gs.empty) S.groups.forEach(g => saveGroup(g));
+  else S.groups = gs.docs.map(x => {
+    const d = x.data();
+    return { id: x.id, name: typeof d.name === 'string' && d.name ? d.name : 'Gruppe',
+      names: strArr(d.names), spoke: strArr(d.spoke), used: strArr(d.used), created: +d.created || 0 };
+  }).sort((a, b) => a.created - b.created);
+  if (!S.groups.some(g => g.id === S.active)) S.active = S.groups[0].id;
+  saveLocal();
+  refreshAll();
+  if ($('dlg').open) openSettings();
+}
+
+let person = null, current = null, segs = [], rotation = 0, spinning = false;
+const $ = id => document.getElementById(id);
+
+const allQ = () => BUILTIN.concat(S.custom);
+const playable = c => allQ().filter(q => q.c === c && S.levels.includes(q.l));
+
+// ---------- Rad ----------
+function pol(r, deg) {
+  const t = (deg - 90) * Math.PI / 180;
+  return [(r * Math.cos(t)).toFixed(2), (r * Math.sin(t)).toFixed(2)];
+}
+function buildWheel() {
+  const active = S.cats.filter(c => playable(c).length);
+  segs = [];
+  if (active.length) while (segs.length < 6) segs.push(...active);
+  const n = segs.length, a = 360 / (n || 1);
+  let svg = '<svg viewBox="-106 -106 212 212"><circle r="105" fill="#fff8ee"/>';
+  if (!n) svg += '<circle r="100" fill="#3a2d55"/>';
+  segs.forEach((c, i) => {
+    const s = i * a, e = (i + 1) * a, m = s + a / 2;
+    const [x1, y1] = pol(100, s), [x2, y2] = pol(100, e);
+    svg += `<path d="M0 0 L${x1} ${y1} A100 100 0 0 1 ${x2} ${y2}Z" fill="${CATS[c].hex}" stroke="#fff8ee" stroke-width="1.5"/>`;
+    svg += `<g transform="rotate(${m})">
+      <text y="-84" font-size="17" text-anchor="middle" dominant-baseline="central">${CATS[c].emoji}</text>
+      <text transform="translate(0 -50) rotate(-90)" font-size="11" font-weight="900" fill="#fff" text-anchor="middle" dominant-baseline="central"
+        font-family="Nunito, sans-serif" letter-spacing=".5">${CATS[c].name.toUpperCase()}</text></g>`;
+  });
+  $('rotor').innerHTML = svg + '</svg>';
+
+  $('chips').innerHTML = '';
+  active.forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'chip';
+    b.style.setProperty('--c', CATS[c].hex);
+    b.textContent = CATS[c].emoji + ' ' + CATS[c].name;
+    b.title = 'Direkt eine Frage aus „' + CATS[c].name + '“ ziehen';
+    b.onclick = () => { if (!spinning) reveal(c); };
+    $('chips').appendChild(b);
+  });
+}
+
+function spin() {
+  if (spinning) return;
+  if (!segs.length) { toast('Keine Fragen ausgewählt – bitte Einstellungen prüfen.'); return; }
+  spinning = true;
+  setBusy(true);
+  const n = segs.length, a = 360 / n, i = Math.floor(Math.random() * n);
+  const target = (i + 0.5) * a + (Math.random() - 0.5) * a * 0.7;
+  const want = (360 - target) % 360;
+  const cur = ((rotation % 360) + 360) % 360;
+  rotation += 360 * 5 + (((want - cur) % 360) + 360) % 360;
+  $('rotor').style.transform = `rotate(${rotation}deg)`;
+  $('card').classList.remove('flipped');
+  setTimeout(() => { spinning = false; setBusy(false); reveal(segs[i]); }, 4300);
+}
+function setBusy(b) { ['btnSpin', 'hub', 'btnOther'].forEach(id => $(id).disabled = b); }
+
+// ---------- Fragen ----------
+function pick(c) {
+  let pool = playable(c).filter(q => !G().used.includes(q.id) && (!current || q.id !== current.q.id));
+  if (!pool.length) {
+    const ids = playable(c).map(q => q.id);
+    G().used = G().used.filter(id => !ids.includes(id));
+    pool = playable(c).filter(q => !current || q.id !== current.q.id);
+    if (!pool.length) pool = playable(c);
+    toast('Alle Fragen aus „' + CATS[c].name + '“ waren dran – es geht von vorne los.');
+  }
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function reveal(c) {
+  const q = pick(c);
+  if (!q) return;
+  G().used.push(q.id);
+  current = { c, q };
+  saveGroup();
+  const card = $('card');
+  const wasFlipped = card.classList.contains('flipped');
+  card.classList.remove('flipped');
+  setTimeout(() => {
+    $('back').style.setProperty('--cat', CATS[c].hex);
+    $('qTag').style.setProperty('--cat', CATS[c].hex);
+    $('qTag').textContent = CATS[c].emoji + ' ' + CATS[c].name;
+    $('qLevel').textContent = '● '.repeat(q.l).trim() + '  ' + LEVELS[q.l];
+    $('qText').textContent = q.t;
+    $('qFor').innerHTML = '';
+    if (person) {
+      $('qFor').append('Frage an ');
+      const b = document.createElement('b'); b.textContent = person; $('qFor').append(b);
+    }
+    card.classList.add('flipped');
+    if (S.fireworks) fireworks(CATS[c].hex);
+    updateStatus();
+  }, wasFlipped ? 420 : 0);
+}
+
+function other() {
+  if (spinning) return;
+  if (!current) { spin(); return; }
+  reveal(current.c);
+}
+
+// ---------- Personen ----------
+function drawPerson() {
+  if (!G().names.length) { toast('Tragt zuerst Namen in den Einstellungen ein.'); openSettings(); $('names').focus(); return; }
+  let pool = G().names.filter(n => !G().spoke.includes(n));
+  if (!pool.length) { G().spoke = []; pool = G().names.slice(); toast('Alle waren einmal dran – neue Runde!'); }
+  const chosen = pool[Math.floor(Math.random() * pool.length)];
+  const el = $('personName');
+  $('btnPerson').disabled = true;
+  el.classList.add('rolling');
+  let k = 0;
+  const steps = Math.min(14, G().names.length > 1 ? 14 : 1);
+  (function tick() {
+    if (k < steps - 1) {
+      el.textContent = G().names[Math.floor(Math.random() * G().names.length)];
+      k++;
+      setTimeout(tick, 50 + k * 12);
+    } else {
+      el.textContent = chosen;
+      el.classList.remove('rolling');
+      person = chosen;
+      G().spoke.push(chosen);
+      saveGroup();
+      $('btnPerson').disabled = false;
+      if ($('card').classList.contains('flipped')) {
+        $('qFor').innerHTML = 'Frage an <b></b>';
+        $('qFor').querySelector('b').textContent = person;
+      }
+      updateStatus();
+    }
+  })();
+}
+
+// ---------- Anzeige ----------
+function updateStatus() {
+  const open = S.cats.reduce((sum, c) => sum + playable(c).filter(q => !G().used.includes(q.id)).length, 0);
+  let txt = open + ' Fragen noch offen';
+  if (G().names.length) txt += ' · ' + G().spoke.filter(n => G().names.includes(n)).length + ' von ' + G().names.length + ' waren dran';
+  $('status').textContent = txt;
+}
+
+let toastTimer;
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+function fireworks(color) {
+  if (!window.confetti) return;
+  const end = Date.now() + 1800;
+  const colors = [color, '#ffb347', '#ffffff', '#ffd86b'];
+  (function frame() {
+    const left = end - Date.now();
+    if (left <= 0) return;
+    const count = Math.round(40 * left / 1800) + 5;
+    confetti({ particleCount: count, spread: 360, startVelocity: 28, ticks: 60, colors,
+      origin: { x: 0.15 + Math.random() * 0.2, y: Math.random() * 0.4 } });
+    confetti({ particleCount: count, spread: 360, startVelocity: 28, ticks: 60, colors,
+      origin: { x: 0.65 + Math.random() * 0.2, y: Math.random() * 0.4 } });
+    setTimeout(frame, 250);
+  })();
+}
+
+function toggleFull() {
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  else document.documentElement.requestFullscreen?.()?.catch?.(() => toast('Vollbild ist hier nicht verfügbar.'));
+}
+
+// ---------- Einstellungen ----------
+function renderGroupSelects() {
+  ['groupSel', 'dlgGroup'].forEach(id => {
+    const sel = $(id);
+    sel.innerHTML = '';
+    S.groups.forEach(g => {
+      const o = document.createElement('option');
+      o.value = g.id;
+      o.textContent = g.name;
+      sel.appendChild(o);
+    });
+    sel.value = S.active;
+  });
+  $('btnDelGroup').disabled = S.groups.length < 2;
+}
+
+function refreshAll() {
+  person = null; current = null;
+  $('personName').textContent = '–';
+  $('card').classList.remove('flipped');
+  renderGroupSelects(); buildWheel(); updateStatus();
+}
+
+function switchGroup(id) {
+  S.active = id;
+  saveProfile();
+  refreshAll();
+}
+
+function applyGroupFields() {
+  const g = G();
+  g.name = $('groupName').value.trim() || 'Gruppe';
+  g.names = [...new Set($('names').value.split('\n').map(s => s.trim()).filter(Boolean))];
+  if (person && !g.names.includes(person)) { person = null; $('personName').textContent = '–'; }
+  saveGroup(g);
+}
+
+function openSettings() {
+  renderGroupSelects();
+  $('groupName').value = G().name;
+  $('syncHint').textContent = cloud
+    ? 'Gruppen und eigene Fragen sind in deinem Konto gespeichert und auf jedem Gerät verfügbar.'
+    : 'Gruppen und eigene Fragen sind in diesem Browser gespeichert.';
+  $('names').value = G().names.join('\n');
+  $('catToggles').innerHTML = '';
+  Object.entries(CATS).forEach(([id, c]) => {
+    const l = document.createElement('label');
+    l.innerHTML = `<input type="checkbox" value="${id}"> `;
+    l.querySelector('input').checked = S.cats.includes(id);
+    l.append(c.emoji + ' ' + c.name);
+    $('catToggles').appendChild(l);
+  });
+  $('levelToggles').innerHTML = '';
+  Object.entries(LEVELS).forEach(([n, name]) => {
+    const l = document.createElement('label');
+    l.innerHTML = `<input type="checkbox" value="${n}"> ${'●'.repeat(n)} ${name}`;
+    l.querySelector('input').checked = S.levels.includes(+n);
+    $('levelToggles').appendChild(l);
+  });
+  $('fireworks').checked = S.fireworks;
+  $('newCat').innerHTML = Object.entries(CATS).map(([id, c]) => `<option value="${id}">${c.emoji} ${c.name}</option>`).join('');
+  $('newLevel').innerHTML = Object.entries(LEVELS).map(([n, name]) => `<option value="${n}">${name}</option>`).join('');
+  renderOwn();
+  if (!$('dlg').open) $('dlg').showModal();
+}
+
+function renderOwn() {
+  const ul = $('ownList');
+  ul.innerHTML = '';
+  if (!S.custom.length) {
+    ul.innerHTML = '<li style="color:#7a6d86">Noch keine eigenen Fragen. Eigene Fragen kommen genauso aufs Rad wie die mitgelieferten ' + BUILTIN.length + '.</li>';
+    return;
+  }
+  S.custom.forEach(q => {
+    const li = document.createElement('li');
+    li.innerHTML = '<span class="dot"></span><span class="txt"></span><button title="Löschen">🗑</button>';
+    li.querySelector('.dot').style.background = CATS[q.c].hex;
+    li.querySelector('.txt').textContent = q.t + ' (' + LEVELS[q.l] + ')';
+    li.querySelector('button').onclick = () => {
+      S.custom = S.custom.filter(x => x.id !== q.id);
+      saveProfile(); renderOwn();
+    };
+    ul.appendChild(li);
+  });
+}
+
+function addOwn() {
+  const t = $('newText').value.trim();
+  if (!t) { $('newText').focus(); return; }
+  S.custom.push({ id: 'c' + Date.now(), c: $('newCat').value, l: +$('newLevel').value, t });
+  $('newText').value = '';
+  saveProfile(); renderOwn(); $('newText').focus();
+}
+
+function applySettings() {
+  applyGroupFields();
+  S.cats = [...$('catToggles').querySelectorAll('input:checked')].map(i => i.value);
+  S.levels = [...$('levelToggles').querySelectorAll('input:checked')].map(i => +i.value);
+  S.fireworks = $('fireworks').checked;
+  saveProfile(); renderGroupSelects(); buildWheel(); updateStatus();
+  $('dlg').close();
+}
+
+// ---------- Ereignisse ----------
+$('btnSpin').onclick = spin;
+$('hub').onclick = spin;
+$('btnOther').onclick = other;
+$('btnPerson').onclick = drawPerson;
+$('btnFull').onclick = toggleFull;
+$('btnSettings').onclick = openSettings;
+$('dlgDone').onclick = applySettings;
+$('dlgClose').onclick = applySettings;
+$('dlg').addEventListener('cancel', e => { e.preventDefault(); applySettings(); });
+$('btnAdd').onclick = addOwn;
+$('newText').addEventListener('keydown', e => { if (e.key === 'Enter') addOwn(); });
+$('groupSel').onchange = e => { switchGroup(e.target.value); e.target.blur(); };
+$('dlgGroup').onchange = e => { applyGroupFields(); switchGroup(e.target.value); openSettings(); };
+$('groupName').addEventListener('input', () => {
+  const o = $('dlgGroup').selectedOptions[0];
+  if (o) o.textContent = $('groupName').value.trim() || 'Gruppe';
+});
+$('btnNewGroup').onclick = () => {
+  applyGroupFields();
+  const g = { id: newId(), name: 'Neue Gruppe', names: [], spoke: [], used: [], created: Date.now() };
+  S.groups.push(g);
+  saveGroup(g);
+  switchGroup(g.id);
+  openSettings();
+  $('groupName').focus(); $('groupName').select();
+};
+let delArmed = null;
+$('btnDelGroup').onclick = () => {
+  const b = $('btnDelGroup');
+  if (S.groups.length < 2) return;
+  if (!delArmed) {
+    b.textContent = 'Wirklich löschen?';
+    delArmed = setTimeout(() => { delArmed = null; b.textContent = '🗑 Löschen'; }, 4000);
+    return;
+  }
+  clearTimeout(delArmed); delArmed = null;
+  b.textContent = '🗑 Löschen';
+  const gone = G();
+  S.groups = S.groups.filter(g => g.id !== gone.id);
+  if (cloud) cloud.groups.doc(gone.id).delete().catch(e => console.warn(e));
+  switchGroup(S.groups[0].id);
+  openSettings();
+};
+let resetArmed = null;
+$('btnReset').onclick = () => {
+  const b = $('btnReset');
+  if (!resetArmed) {
+    b.textContent = 'Wirklich alles zurücksetzen? Nochmal klicken';
+    resetArmed = setTimeout(() => { resetArmed = null; b.textContent = '↺ Gespielte Fragen & Personen dieser Gruppe zurücksetzen'; }, 4000);
+    return;
+  }
+  clearTimeout(resetArmed); resetArmed = null;
+  b.textContent = '↺ Gespielte Fragen & Personen dieser Gruppe zurücksetzen';
+  G().used = []; G().spoke = [];
+  saveGroup(); refreshAll(); toast('Zurückgesetzt – alles ist wieder offen.');
+};
+
+document.addEventListener('keydown', e => {
+  if ($('dlg').open || e.target.matches?.('input, textarea, select') || e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k === ' ') { e.preventDefault(); spin(); }
+  else if (k === 'n') drawPerson();
+  else if (k === 'a') other();
+  else if (k === 'f') toggleFull();
+});
+
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+refreshAll();
+connectCloud()
+  .catch(e => console.warn('Konto-Speicher nicht verfügbar', e))
+  .finally(() => { if (!G().names.length && !$('dlg').open) openSettings(); });
+</script>
+</body>
+</html>
