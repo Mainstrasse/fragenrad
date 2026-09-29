@@ -406,7 +406,53 @@ const BUILTIN = [
   ['church', 3, 'Gibt es eine Gebetserhörung, die dich bis heute begleitet?'],
   ['church', 3, 'Welche Gabe hat Gott dir geschenkt – und wie möchtest du sie einsetzen?'],
   ['church', 3, 'Gab es eine Zeit, in der Gott dir fern vorkam? Was hat dir da durchgeholfen?'],
-  ['church', 3, 'Wofür dürfen wir als Gruppe heute für dich beten?']
+  ['church', 3, 'Wofür dürfen wir als Gruppe heute für dich beten?'],
+
+  // Weitere Fragen (hinten angehängt, damit bereits gespielte Fragen ihre Kennung behalten)
+  ['freizeit', 1, 'Was machst du am liebsten an einem verregneten Sonntagnachmittag?'],
+  ['freizeit', 1, 'Welches Gesellschaftsspiel spielst du am liebsten – und bist du ein guter Verlierer?'],
+  ['freizeit', 1, 'Welches Essen könntest du jede Woche essen, ohne dass es langweilig wird?'],
+  ['freizeit', 1, 'Was war das Schönste, das du in diesem Sommer erlebt hast?'],
+  ['freizeit', 1, 'Hast du ein Lieblingscafé oder -restaurant in der Gegend? Was bestellst du dort?'],
+  ['freizeit', 1, 'Welches Konzert oder welche Veranstaltung hat dich zuletzt begeistert?'],
+  ['freizeit', 1, 'Welches Lied hörst du gerade rauf und runter?'],
+  ['freizeit', 2, 'Was hast du in letzter Zeit Neues gelernt oder ausprobiert?'],
+  ['freizeit', 2, 'Wie verbringst du am liebsten Zeit mit Freunden?'],
+  ['freizeit', 2, 'Welcher Ort auf der Welt hat dich beim ersten Besuch umgehauen?'],
+  ['freizeit', 2, 'Womit verlierst du am Handy oder vor dem Fernseher am meisten Zeit – und würdest du das gern ändern?'],
+  ['freizeit', 3, 'Wann ist deine Freizeit auch Zeit mit Gott – beim Spazierengehen, bei Musik, in der Natur?'],
+  ['freizeit', 3, 'Was würdest du in deinem Alltag gern weglassen, um mehr Raum für das Wesentliche zu haben?'],
+
+  ['sport', 1, 'Welche Sportart schaust du dir am liebsten an – und warum?'],
+  ['sport', 1, 'Bist du eher der Frühsport-Typ oder bewegst du dich lieber abends?'],
+  ['sport', 1, 'Welche Sportlerin oder welcher Sportler beeindruckt dich – und warum?'],
+  ['sport', 1, 'Was war dein schönstes Erlebnis in einer Mannschaft oder einem Verein?'],
+  ['sport', 1, 'Welche Sportart findest du völlig unterschätzt?'],
+  ['sport', 1, 'Wenn du bei Olympia in einer Disziplin antreten dürftest: welche wäre es?'],
+  ['sport', 1, 'Fahrradfahren, Wandern oder Schwimmen – was ist dein Favorit?'],
+  ['sport', 2, 'Wie hältst du dich im Alltag fit, wenn die Zeit knapp ist?'],
+  ['sport', 2, 'Was lernt man im Mannschaftssport über Gemeinschaft, das auch für die Gemeinde gilt?'],
+  ['sport', 2, 'Gab es einen Trainer, eine Lehrerin oder einen Mentor, der dich besonders geprägt hat?'],
+  ['sport', 2, 'Treibt dich Ehrgeiz an – oder setzt er dich eher unter Druck?'],
+  ['sport', 3, '„Lasst uns mit Ausdauer laufen in dem Wettkampf, der vor uns liegt“ (Hebräer 12,1). Was hilft dir, den Blick auf Jesus gerichtet zu halten?'],
+  ['sport', 3, 'Unser Körper ist ein Tempel des Heiligen Geistes (1. Korinther 6,19). Was bedeutet das für deinen Umgang mit dir selbst?'],
+
+  ['church', 1, 'Welches Anbetungslied singst du am liebsten mit?'],
+  ['church', 1, 'Was war dein schönstes Erlebnis auf einer Freizeit, Konferenz oder einem Gemeindeausflug?'],
+  ['church', 1, 'Welche Aufgabe in der Gemeinde machst du gerne – oder würdest du gern einmal ausprobieren?'],
+  ['church', 1, 'Welches christliche Buch oder welchen Podcast kannst du empfehlen?'],
+  ['church', 1, 'Was ist dein Lieblingsmoment im Gottesdienst?'],
+  ['church', 1, 'Welches Wunder Jesu hättest du gerne live miterlebt?'],
+  ['church', 2, 'Welcher Gedanke aus einer Predigt ist dir in letzter Zeit hängen geblieben?'],
+  ['church', 2, 'Wie sieht deine Zeit mit Gott im Alltag aus – morgens, abends oder unterwegs?'],
+  ['church', 2, 'Was bedeuten dir Lobpreis und Anbetung persönlich?'],
+  ['church', 2, 'Wo hat Gott schon einmal durch einen anderen Menschen zu dir gesprochen?'],
+  ['church', 2, 'Was wünschst du dir für unsere Hausgruppe im kommenden Jahr?'],
+  ['church', 3, 'Hast du schon einmal Gottes Kraft oder Heilung ganz konkret erlebt?'],
+  ['church', 3, 'Wie erlebst du den Heiligen Geist im Alltag – als Tröster, als Ratgeber oder als Kraft?'],
+  ['church', 3, 'Wo möchtest du im Glauben mutiger werden?'],
+  ['church', 3, 'Wem möchtest du gerne von Jesus erzählen – und was hält dich manchmal davon ab?'],
+  ['church', 3, 'Welche Verheißung Gottes hältst du gerade fest?']
 ].map(([c, l, t], i) => ({ id: 'b' + i, c, l, t }));
 
 // ---------- Zustand ----------
@@ -581,6 +627,8 @@ function drawPerson() {
   let pool = G().names.filter(n => !G().spoke.includes(n));
   if (!pool.length) { G().spoke = []; pool = G().names.slice(); toast('Alle waren einmal dran – neue Runde!'); }
   const chosen = pool[Math.floor(Math.random() * pool.length)];
+  // Die alte Frage verschwindet, sobald eine neue Person gezogen wird
+  $('card').classList.remove('flipped');
   const el = $('personName');
   $('btnPerson').disabled = true;
   el.classList.add('rolling');
@@ -598,10 +646,6 @@ function drawPerson() {
       G().spoke.push(chosen);
       saveGroup();
       $('btnPerson').disabled = false;
-      if ($('card').classList.contains('flipped')) {
-        $('qFor').innerHTML = 'Frage an <b></b>';
-        $('qFor').querySelector('b').textContent = person;
-      }
       updateStatus();
     }
   })();
