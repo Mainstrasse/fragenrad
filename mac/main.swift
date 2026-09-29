@@ -26,7 +26,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
         window.minSize = NSSize(width: 820, height: 560)
         window.backgroundColor = webView.underPageBackgroundColor
         window.collectionBehavior = [.fullScreenPrimary]
-        window.contentView = webView
+        // Die Webseite beginnt erst unter der Titelleiste, damit nichts die Fensterknöpfe verdeckt
+        let container = NSView()
+        container.wantsLayer = true
+        container.layer?.backgroundColor = webView.underPageBackgroundColor.cgColor
+        window.contentView = container
+        webView.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(webView)
+        if let guide = window.contentLayoutGuide as? NSLayoutGuide {
+            NSLayoutConstraint.activate([
+                webView.topAnchor.constraint(equalTo: guide.topAnchor),
+                webView.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+                webView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+                webView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            ])
+        }
         if !window.setFrameUsingName("FragenradHauptfenster") { window.center() }
         window.setFrameAutosaveName("FragenradHauptfenster")
         window.makeKeyAndOrderFront(nil)
