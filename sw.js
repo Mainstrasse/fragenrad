@@ -1,5 +1,5 @@
 // Hält das Fragenrad offline verfügbar. Bei neuer Version VERSION erhöhen.
-const VERSION = 'fragenrad-v2';
+const VERSION = 'fragenrad-v3';
 const FILES = [
   './', './index.html', './manifest.webmanifest', './confetti.min.js',
   './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png', './icons/favicon-32.png'
@@ -22,10 +22,10 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
 
-  // Seite selbst: erst online versuchen (neue Version), sonst aus dem Speicher
+  // Seite selbst: erst online versuchen (immer frisch vom Server), sonst aus dem Speicher
   if (req.mode === 'navigate') {
     e.respondWith(
-      fetch(req)
+      fetch(req.url, { cache: 'no-cache' })
         .then(res => { const copy = res.clone(); caches.open(VERSION).then(c => c.put('./index.html', copy)); return res; })
         .catch(() => caches.match('./index.html'))
     );

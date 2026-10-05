@@ -231,15 +231,41 @@
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
   @media (max-width: 860px) {
-    body { overflow: auto; }
-    header { padding: 12px 16px; flex-wrap: wrap; }
-    main { grid-template-columns: 1fr; padding: 16px; gap: 20px; }
-    .wheel { width: min(80vw, 380px); }
-    .scene { height: 380px; }
-    footer { padding: 12px 16px; }
+    html, body { height: auto; }
+    body { display: block; overflow: auto; }
+    header { padding: 12px 16px; flex-direction: column; align-items: stretch; gap: 10px; }
+    .brand-row { flex-direction: column; align-items: stretch; gap: 10px; }
+    .dlg-head, .dlg-body, .dlg-foot { padding-left: 18px; padding-right: 18px; }
+    .dlg-foot { flex-direction: column-reverse; }
+    .dlg-body { max-height: calc(100vh - 240px); }
+    .dlg-foot .btn { justify-content: center; }
+    .brand { font-size: 1.2rem; }
+    .group-pick { flex: 1; }
+    .group-pick select { flex: 1; min-width: 0; max-width: none; }
+    .person { justify-content: space-between; gap: 10px; padding: 6px 6px 6px 16px; }
+    .person .name { flex: 1; min-width: 0; font-size: 1.35rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    main { display: flex; flex-direction: column; padding: 16px; gap: 18px; overflow-x: clip; }
+    .wheel { width: min(76vw, 320px); }
+    .scene { height: clamp(300px, 50vh, 420px); }
+    .face { border-radius: 22px; padding: 24px 20px; }
+    .question { font-size: 1.35rem; }
+    .meta { margin-bottom: 18px; }
+    .for-whom { margin-top: 18px; }
+    footer {
+      position: sticky; bottom: 0; z-index: 5;
+      background: var(--bg);
+      padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+    }
+    .actions { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+    .actions .btn { justify-content: center; }
+    #btnSpin { grid-column: 1 / -1; font-size: 1.1rem; padding: 14px; }
+    #btnFull { display: none; }
+    .status { width: 100%; text-align: center; font-size: .85rem; }
+    .toast { bottom: 160px; width: max-content; max-width: calc(100vw - 32px); text-align: center; }
     .add-row, .group-row { grid-template-columns: 1fr 1fr; }
     .add-row input { grid-column: 1 / -1; }
   }
+  @media (hover: none) { kbd { display: none; } }
 </style>
 </head>
 <body>
@@ -525,6 +551,8 @@ const $ = id => document.getElementById(id);
 const allQ = () => BUILTIN.concat(S.custom);
 const playable = c => allQ().filter(q => q.c === c && S.levels.includes(q.l));
 
+const isNarrow = () => matchMedia('(max-width: 860px)').matches;
+
 // ---------- Rad ----------
 function pol(r, deg) {
   const t = (deg - 90) * Math.PI / 180;
@@ -571,6 +599,7 @@ function spin() {
   const cur = ((rotation % 360) + 360) % 360;
   rotation += 360 * 5 + (((want - cur) % 360) + 360) % 360;
   $('rotor').style.transform = `rotate(${rotation}deg)`;
+  if (isNarrow()) document.querySelector('.wheel').scrollIntoView({ behavior: 'smooth', block: 'center' });
   $('card').classList.remove('flipped');
   setTimeout(() => { spinning = false; setBusy(false); reveal(segs[i]); }, 4300);
 }
@@ -610,6 +639,7 @@ function reveal(c) {
       const b = document.createElement('b'); b.textContent = person; $('qFor').append(b);
     }
     card.classList.add('flipped');
+    if (isNarrow()) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
     if (S.fireworks) fireworks(CATS[c].hex);
     updateStatus();
   }, wasFlipped ? 420 : 0);
