@@ -354,8 +354,11 @@
       <div class="toggles" id="levelToggles"></div>
     </fieldset>
     <fieldset>
-      <legend>Effekte</legend>
-      <div class="toggles"><label><input type="checkbox" id="fireworks"> Feuerwerk beim Aufdecken</label></div>
+      <legend>Ablauf &amp; Effekte</legend>
+      <div class="toggles">
+        <label><input type="checkbox" id="autoSpin"> Rad dreht sich nach „Person ziehen“ von selbst</label>
+        <label><input type="checkbox" id="fireworks"> Feuerwerk beim Aufdecken</label>
+      </div>
     </fieldset>
     <fieldset>
       <legend>Eigene Fragen</legend>
@@ -589,7 +592,7 @@ const newId = () => 'g' + Date.now().toString(36) + Math.random().toString(36).s
 const strArr = v => Array.isArray(v) ? v.filter(x => typeof x === 'string') : [];
 const FRESH = !Object.keys(load()).length;
 const S = Object.assign({
-  cats: Object.keys(CATS), levels: [1, 2], fireworks: true,
+  cats: Object.keys(CATS), levels: [1, 2], fireworks: true, autoSpin: false,
   custom: [], groups: [], active: null
 }, load());
 // Übernahme aus der Version ohne Gruppen
@@ -628,7 +631,7 @@ function saveGroup(g = G()) {
 }
 function saveProfile() {
   saveLocal();
-  if (cloud) write(cloud.profile, { cats: S.cats, catsSeen: S.catsSeen, levels: S.levels, fireworks: S.fireworks, custom: S.custom, active: S.active });
+  if (cloud) write(cloud.profile, { cats: S.cats, catsSeen: S.catsSeen, levels: S.levels, fireworks: S.fireworks, autoSpin: S.autoSpin, custom: S.custom, active: S.active });
 }
 
 async function connectCloud() {
@@ -645,6 +648,7 @@ async function connectCloud() {
     if (Array.isArray(d.cats)) { S.cats = d.cats.filter(c => CATS[c]); migrateCats(d.catsSeen); }
     if (Array.isArray(d.levels)) S.levels = d.levels.filter(l => LEVELS[l]);
     if (typeof d.fireworks === 'boolean') S.fireworks = d.fireworks;
+    if (typeof d.autoSpin === 'boolean') S.autoSpin = d.autoSpin;
     if (Array.isArray(d.custom)) S.custom = d.custom.filter(q => q && typeof q.id === 'string' && CATS[q.c] && LEVELS[q.l] && typeof q.t === 'string');
     if (typeof d.active === 'string') S.active = d.active;
   } else saveProfile();
@@ -792,6 +796,8 @@ function drawPerson() {
       saveGroup();
       $('btnPerson').disabled = false;
       updateStatus();
+      // Auf Wunsch dreht sich das Rad eine Sekunde später von selbst
+      if (S.autoSpin) setTimeout(() => { if (!$('dlg').open) spin(); }, 1000);
     }
   })();
 }
@@ -894,6 +900,7 @@ function openSettings() {
     $('levelToggles').appendChild(l);
   });
   $('fireworks').checked = S.fireworks;
+  $('autoSpin').checked = S.autoSpin;
   $('newCat').innerHTML = Object.entries(CATS).map(([id, c]) => `<option value="${id}">${c.emoji} ${c.name}</option>`).join('');
   $('newLevel').innerHTML = Object.entries(LEVELS).map(([n, name]) => `<option value="${n}">${name}</option>`).join('');
   renderOwn();
@@ -933,6 +940,7 @@ function applySettings() {
   S.cats = [...$('catToggles').querySelectorAll('input:checked')].map(i => i.value);
   S.levels = [...$('levelToggles').querySelectorAll('input:checked')].map(i => +i.value);
   S.fireworks = $('fireworks').checked;
+  S.autoSpin = $('autoSpin').checked;
   saveProfile(); renderGroupSelects(); buildWheel(); updateStatus();
   $('dlg').close();
 }
