@@ -15,6 +15,6 @@
   <key>LSApplicationCategoryType</key><string>public.app-category.entertainment</string>
   <key>NSHighResolutionCapable</key><true/>
   <key>NSPrincipalClass</key><string>NSApplication</string>
-  <key>NSHumanReadableCopyright</key><string>Hauskirche Fragenrad</string>
+  <key>NSHumanReadableCopyright</key><string>Kleingruppen-Fragenrad</string>
 </dict>
 </plist>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hauskirche Fragenrad</title>
+<title>Kleingruppen-Fragenrad</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800;900&display=swap" rel="stylesheet">
@@ -272,7 +272,7 @@
 
 <header>
   <div class="brand-row">
-    <div class="brand">Hauskirche <span>Fragenrad</span></div>
+    <div class="brand">Kleingruppen-<span>Fragenrad</span></div>
     <label class="group-pick" for="groupSel">
       <span class="label">Gruppe</span>
       <select id="groupSel" title="Gruppe wechseln"></select>
@@ -380,7 +380,11 @@
 const CATS = {
   freizeit: { name: 'Freizeit', emoji: '🌿', color: 'var(--freizeit)', hex: '#4fae72' },
   sport:    { name: 'Sport',    emoji: '⚽', color: 'var(--sport)',    hex: '#3a86d1' },
-  church:   { name: 'Church',   emoji: '🔥', color: 'var(--church)',   hex: '#e2583e' }
+  church:   { name: 'Church',   emoji: '🔥', color: 'var(--church)',   hex: '#e2583e' },
+  familie:  { name: 'Familie',  emoji: '🏡', hex: '#d99a1e' },
+  bibel:    { name: 'Bibel',    emoji: '📖', hex: '#8a63c4' },
+  zukunft:  { name: 'Zukunft',  emoji: '🌱', hex: '#d6577f' },
+  spass:    { name: 'Spaß',     emoji: '😄', hex: '#1f9e9a' }
 };
 const LEVELS = { 1: 'Locker', 2: 'Persönlich', 3: 'Tiefgang' };
 
@@ -417,11 +421,11 @@ const BUILTIN = [
   ['sport', 3, 'Wie gehst du mit Niederlagen um – und was hat dir schon einmal geholfen, wieder aufzustehen?'],
 
   // Church
-  ['church', 1, 'Wie bist du in unsere Gemeinde oder Hauskirche gekommen?'],
+  ['church', 1, 'Wie bist du in unsere Gemeinde oder Kleingruppe gekommen?'],
   ['church', 1, 'Welches Lobpreislied geht dir gerade nicht aus dem Kopf?'],
   ['church', 1, 'Welche biblische Geschichte mochtest du als Kind am liebsten?'],
   ['church', 1, 'Mit welcher Person aus der Bibel würdest du gerne einen Tag verbringen – und was würdest du sie fragen?'],
-  ['church', 1, 'Was schätzt du an unserer Hausgruppe besonders?'],
+  ['church', 1, 'Was schätzt du an unserer Kleingruppe besonders?'],
   ['church', 2, 'Wie bist du zum Glauben an Jesus gekommen?'],
   ['church', 2, 'Wo hast du Gott in der letzten Woche im Alltag erlebt?'],
   ['church', 2, 'Welcher Bibelvers begleitet dich gerade – und was bedeutet er dir?'],
@@ -473,12 +477,109 @@ const BUILTIN = [
   ['church', 2, 'Wie sieht deine Zeit mit Gott im Alltag aus – morgens, abends oder unterwegs?'],
   ['church', 2, 'Was bedeuten dir Lobpreis und Anbetung persönlich?'],
   ['church', 2, 'Wo hat Gott schon einmal durch einen anderen Menschen zu dir gesprochen?'],
-  ['church', 2, 'Was wünschst du dir für unsere Hausgruppe im kommenden Jahr?'],
+  ['church', 2, 'Was wünschst du dir für unsere Kleingruppe im kommenden Jahr?'],
   ['church', 3, 'Hast du schon einmal Gottes Kraft oder Heilung ganz konkret erlebt?'],
   ['church', 3, 'Wie erlebst du den Heiligen Geist im Alltag – als Tröster, als Ratgeber oder als Kraft?'],
   ['church', 3, 'Wo möchtest du im Glauben mutiger werden?'],
   ['church', 3, 'Wem möchtest du gerne von Jesus erzählen – und was hält dich manchmal davon ab?'],
-  ['church', 3, 'Welche Verheißung Gottes hältst du gerade fest?']
+  ['church', 3, 'Welche Verheißung Gottes hältst du gerade fest?'],
+
+  // Rubriken-Erweiterung (hinten angehängt, damit gespielte Fragen ihre Kennung behalten)
+  ['freizeit', 1, 'Welches Hobby hast du schon einmal angefangen und wieder aufgegeben?'],
+  ['freizeit', 1, 'Bist du eher Planer oder machst du spontan, worauf du Lust hast?'],
+  ['freizeit', 1, 'Was ist dein liebster Ausflugsort in der Umgebung?'],
+  ['freizeit', 2, 'Welche kreative Tätigkeit macht dir Freude – Malen, Musik, Handwerken oder Schreiben?'],
+  ['freizeit', 3, 'Wie kannst du deine Hobbys nutzen, um anderen etwas Gutes zu tun?'],
+
+  ['sport', 1, 'Welche Sportart hast du in der Schule am liebsten gemacht – und welche gar nicht?'],
+  ['sport', 1, 'Hast du schon einmal bei einem Lauf, Turnier oder Wettkampf mitgemacht?'],
+  ['sport', 1, 'Besitzt du ein Trikot oder einen Fanartikel, auf den du stolz bist?'],
+  ['sport', 2, 'Bewegst du dich lieber allein oder in Gemeinschaft – was motiviert dich mehr?'],
+  ['sport', 3, 'Wo wünschst du dir gerade jemanden, der dich im Glauben anfeuert wie ein Teamkollege?'],
+
+  ['church', 1, 'Welche Gemeinde hast du als erste besucht – und was ist dir davon in Erinnerung geblieben?'],
+  ['church', 1, 'Welches Lied aus der Gemeinde begleitet dich schon viele Jahre?'],
+  ['church', 2, 'Was bedeutet dir deine Taufe – oder was verbindest du mit der Taufe?'],
+  ['church', 2, 'Wie erlebst du Gemeinschaft in unserer Kleingruppe?'],
+  ['church', 3, 'Wo wünschst du dir mehr vom Heiligen Geist in deinem Leben?'],
+  ['church', 3, 'Wie können wir als Kleingruppe für Menschen in unserer Stadt ein Segen sein?'],
+
+  // Familie
+  ['familie', 1, 'Hast du Geschwister – und welche Rolle hattest du unter ihnen?'],
+  ['familie', 1, 'Was gab es bei euch früher sonntags zu essen?'],
+  ['familie', 1, 'Welche Familientradition magst du besonders?'],
+  ['familie', 1, 'Welches Familienfest ist dir in schöner Erinnerung geblieben?'],
+  ['familie', 1, 'Wohin ging es früher mit der Familie in den Urlaub?'],
+  ['familie', 1, 'Welches Spiel wurde bei euch zu Hause am meisten gespielt?'],
+  ['familie', 1, 'Wer in deiner Familie kocht am besten – und was ist die Spezialität?'],
+  ['familie', 1, 'Wie feiert ihr Weihnachten?'],
+  ['familie', 2, 'Von wem in deiner Familie hast du etwas Wichtiges fürs Leben gelernt?'],
+  ['familie', 2, 'Welche Eigenschaft deiner Eltern entdeckst du bei dir selbst wieder?'],
+  ['familie', 2, 'Wer war als Kind ein Vorbild für dich – und warum?'],
+  ['familie', 2, 'Welche Rolle spielte der Glaube in deiner Familie, als du aufgewachsen bist?'],
+  ['familie', 2, 'Gibt es Menschen außerhalb deiner Familie, die für dich wie Familie sind?'],
+  ['familie', 2, 'Was bedeutet für dich „Zuhause“?'],
+  ['familie', 3, 'Was möchtest du einmal an die nächste Generation weitergeben?'],
+  ['familie', 3, 'Wo erlebst du Familie gerade als Geschenk – und wo als Herausforderung?'],
+  ['familie', 3, 'Für wen in deiner Familie liegt dir das Gebet besonders am Herzen?'],
+  ['familie', 3, 'Wie erlebst du die Gemeinde als geistliche Familie?'],
+
+  // Bibel
+  ['bibel', 1, 'Welches Buch der Bibel liest du am liebsten?'],
+  ['bibel', 1, 'Welche Bibelübersetzung nutzt du – und warum gerade diese?'],
+  ['bibel', 1, 'Welches Gleichnis Jesu gefällt dir besonders?'],
+  ['bibel', 1, 'Welcher Psalm spricht dich an?'],
+  ['bibel', 1, 'Mit welcher biblischen Person hast du am meisten gemeinsam?'],
+  ['bibel', 1, 'Liest du die Bibel lieber auf Papier oder in einer App?'],
+  ['bibel', 1, 'Welche Geschichte aus dem Alten Testament findest du besonders spannend?'],
+  ['bibel', 2, 'Welcher Bibelvers hat dir schon einmal in einer ganz konkreten Situation geholfen?'],
+  ['bibel', 2, 'Was hilft dir, regelmäßig in der Bibel zu lesen?'],
+  ['bibel', 2, 'Welche Bibelstelle hat dich zuletzt überrascht oder zum Nachdenken gebracht?'],
+  ['bibel', 2, 'Welche Eigenschaft Gottes wird dir beim Bibellesen besonders wichtig?'],
+  ['bibel', 2, 'Welchen Vers kannst du auswendig – und warum hast du gerade ihn gelernt?'],
+  ['bibel', 2, 'Welche Begegnung Jesu mit einem Menschen berührt dich besonders?'],
+  ['bibel', 3, 'Gab es einen Moment, in dem Gott durch sein Wort ganz persönlich zu dir gesprochen hat?'],
+  ['bibel', 3, 'Welche Verheißung aus der Bibel möchtest du anderen weitergeben?'],
+  ['bibel', 3, 'Welche biblische Person zeigt dir, dass Gott auch mit unseren Schwächen Großes tut?'],
+  ['bibel', 3, 'Welcher Bibeltext hat dich in einer schweren Zeit getragen?'],
+
+  // Träume & Zukunft
+  ['zukunft', 1, 'Worauf freust du dich in den nächsten Wochen am meisten?'],
+  ['zukunft', 1, 'Welches Land oder welche Stadt möchtest du unbedingt einmal besuchen?'],
+  ['zukunft', 1, 'Was steht dieses Jahr noch auf deiner Wunschliste?'],
+  ['zukunft', 1, 'Was wolltest du als Kind werden?'],
+  ['zukunft', 1, 'Welche Fähigkeit würdest du gerne noch lernen?'],
+  ['zukunft', 1, 'Wenn du ein Jahr frei hättest: Was würdest du damit machen?'],
+  ['zukunft', 2, 'Wo siehst du dich in fünf Jahren?'],
+  ['zukunft', 2, 'Welchen Traum trägst du schon lange mit dir herum?'],
+  ['zukunft', 2, 'Was würdest du anpacken, wenn Geld keine Rolle spielte?'],
+  ['zukunft', 2, 'Welches Projekt möchtest du unbedingt einmal umsetzen?'],
+  ['zukunft', 2, 'Was möchtest du im nächsten Jahr anders machen als in diesem?'],
+  ['zukunft', 3, 'Wie möchtest du, dass Menschen dich einmal in Erinnerung behalten?'],
+  ['zukunft', 3, 'Wo wünschst du dir, dass Gott in deinem Leben etwas Neues tut?'],
+  ['zukunft', 3, 'Welche Berufung spürst du für dein Leben?'],
+  ['zukunft', 3, 'Wofür möchtest du deine Zeit und Kraft einsetzen, damit Gottes Reich wächst?'],
+  ['zukunft', 3, 'Gibt es etwas, das Gott dir aufs Herz gelegt hat und das du noch nicht angegangen bist?'],
+
+  // Spaß
+  ['spass', 1, 'Welche Superkraft hättest du gern – und wofür würdest du sie einsetzen?'],
+  ['spass', 1, 'Was ist das seltsamste Essen, das du je probiert hast?'],
+  ['spass', 1, 'Wenn dein Leben ein Film wäre: Wie würde er heißen?'],
+  ['spass', 1, 'Was ist dein nutzlosestes Talent?'],
+  ['spass', 1, 'Welche lustige Panne kannst du heute mit einem Lachen erzählen?'],
+  ['spass', 1, 'Wenn du ein Tier wärst, welches wärst du – und warum?'],
+  ['spass', 1, 'Pizza mit Ananas: ja oder nein? Begründe!'],
+  ['spass', 1, 'Welches Lied singst du lauthals im Auto mit?'],
+  ['spass', 1, 'Wenn du für einen Tag einen anderen Beruf haben könntest: welchen?'],
+  ['spass', 1, 'Was war das beste Geschenk, das du je bekommen hast?'],
+  ['spass', 1, 'Welches Wort benutzt du viel zu oft?'],
+  ['spass', 1, 'Wenn du nur noch ein Gericht für den Rest deines Lebens essen dürftest: welches?'],
+  ['spass', 1, 'Sommer oder Winter – und was spricht für deine Wahl?'],
+  ['spass', 1, 'Welches Spielzeug aus deiner Kindheit hättest du gerne wieder?'],
+  ['spass', 1, 'Was ist das Mutigste, das du je gemacht hast?'],
+  ['spass', 1, 'Welcher Moment hat dich zuletzt richtig zum Lachen gebracht?'],
+  ['spass', 2, 'Welche Eigenart an dir bringt andere am meisten zum Schmunzeln?'],
+  ['spass', 2, 'Wenn du einen Tag mit einer bekannten Person verbringen könntest: mit wem und warum?']
 ].map(([c, l, t], i) => ({ id: 'b' + i, c, l, t }));
 
 // ---------- Zustand ----------
@@ -486,17 +587,31 @@ const KEY = 'hauskirche-fragenrad-v1';
 function load() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } }
 const newId = () => 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 const strArr = v => Array.isArray(v) ? v.filter(x => typeof x === 'string') : [];
+const FRESH = !Object.keys(load()).length;
 const S = Object.assign({
   cats: Object.keys(CATS), levels: [1, 2], fireworks: true,
   custom: [], groups: [], active: null
 }, load());
 // Übernahme aus der Version ohne Gruppen
 if (!S.groups.length) {
-  S.groups.push({ id: newId(), name: 'Meine Hausgruppe', names: strArr(S.names), spoke: strArr(S.spoke), used: strArr(S.used), created: Date.now() });
+  S.groups.push({ id: newId(), name: 'Meine Kleingruppe', names: strArr(S.names), spoke: strArr(S.spoke), used: strArr(S.used), created: Date.now() });
 }
 delete S.names; delete S.spoke; delete S.used;
 if (!S.groups.some(g => g.id === S.active)) S.active = S.groups[0].id;
 const G = () => S.groups.find(g => g.id === S.active);
+
+// Neue Rubriken bei bisherigen Nutzern automatisch einschalten
+function migrateCats(seenBefore) {
+  const seen = seenBefore ? strArr(seenBefore) : ['freizeit', 'sport', 'church'];
+  Object.keys(CATS).forEach(c => {
+    if (!seen.includes(c)) { seen.push(c); if (!S.cats.includes(c)) S.cats.push(c); }
+  });
+  S.catsSeen = seen;
+}
+if (FRESH) S.catsSeen = Object.keys(CATS);
+migrateCats(S.catsSeen);
+const renameDefault = n => n === 'Meine Hausgruppe' ? 'Meine Kleingruppe' : n;
+S.groups.forEach(g => { g.name = renameDefault(g.name); });
 
 // Gespeichert wird immer im Browser und zusätzlich im Konto, sobald die Seite online läuft
 let cloud = null;
@@ -513,7 +628,7 @@ function saveGroup(g = G()) {
 }
 function saveProfile() {
   saveLocal();
-  if (cloud) write(cloud.profile, { cats: S.cats, levels: S.levels, fireworks: S.fireworks, custom: S.custom, active: S.active });
+  if (cloud) write(cloud.profile, { cats: S.cats, catsSeen: S.catsSeen, levels: S.levels, fireworks: S.fireworks, custom: S.custom, active: S.active });
 }
 
 async function connectCloud() {
@@ -527,7 +642,7 @@ async function connectCloud() {
   cloud = { profile, groups };
   if (p.exists) {
     const d = p.data();
-    if (Array.isArray(d.cats)) S.cats = d.cats.filter(c => CATS[c]);
+    if (Array.isArray(d.cats)) { S.cats = d.cats.filter(c => CATS[c]); migrateCats(d.catsSeen); }
     if (Array.isArray(d.levels)) S.levels = d.levels.filter(l => LEVELS[l]);
     if (typeof d.fireworks === 'boolean') S.fireworks = d.fireworks;
     if (Array.isArray(d.custom)) S.custom = d.custom.filter(q => q && typeof q.id === 'string' && CATS[q.c] && LEVELS[q.l] && typeof q.t === 'string');
@@ -536,7 +651,7 @@ async function connectCloud() {
   if (gs.empty) S.groups.forEach(g => saveGroup(g));
   else S.groups = gs.docs.map(x => {
     const d = x.data();
-    return { id: x.id, name: typeof d.name === 'string' && d.name ? d.name : 'Gruppe',
+    return { id: x.id, name: typeof d.name === 'string' && d.name ? renameDefault(d.name) : 'Gruppe',
       names: strArr(d.names), spoke: strArr(d.spoke), used: strArr(d.used), created: +d.created || 0 };
   }).sort((a, b) => a.created - b.created);
   if (!S.groups.some(g => g.id === S.active)) S.active = S.groups[0].id;
@@ -559,7 +674,7 @@ function pol(r, deg) {
   return [(r * Math.cos(t)).toFixed(2), (r * Math.sin(t)).toFixed(2)];
 }
 function buildWheel() {
-  const active = S.cats.filter(c => playable(c).length);
+  const active = Object.keys(CATS).filter(c => S.cats.includes(c) && playable(c).length);
   segs = [];
   if (active.length) while (segs.length < 6) segs.push(...active);
   const n = segs.length, a = 360 / (n || 1);
@@ -571,7 +686,7 @@ function buildWheel() {
     svg += `<path d="M0 0 L${x1} ${y1} A100 100 0 0 1 ${x2} ${y2}Z" fill="${CATS[c].hex}" stroke="#fff8ee" stroke-width="1.5"/>`;
     svg += `<g transform="rotate(${m})">
       <text y="-84" font-size="17" text-anchor="middle" dominant-baseline="central">${CATS[c].emoji}</text>
-      <text transform="translate(0 -50) rotate(-90)" font-size="11" font-weight="900" fill="#fff" text-anchor="middle" dominant-baseline="central"
+      <text transform="translate(0 -52) rotate(-90)" font-size="${n > 6 ? 9.5 : 11}" font-weight="900" fill="#fff" text-anchor="middle" dominant-baseline="central"
         font-family="Nunito, sans-serif" letter-spacing=".5">${CATS[c].name.toUpperCase()}</text></g>`;
   });
   $('rotor').innerHTML = svg + '</svg>';

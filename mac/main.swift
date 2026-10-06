@@ -1,4 +1,4 @@
-// Hauskirche Fragenrad als Mac-App: ein Fenster, das die mitgelieferte Webseite anzeigt.
+// Kleingruppen-Fragenrad als Mac-App: ein Fenster, das die mitgelieferte Webseite anzeigt.
 import Cocoa
 import WebKit
 
@@ -22,7 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
             contentRect: NSRect(x: 0, y: 0, width: 1280, height: 800),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered, defer: false)
-        window.title = "Hauskirche Fragenrad"
+        window.title = "Kleingruppen-Fragenrad"
         window.minSize = NSSize(width: 820, height: 560)
         window.backgroundColor = webView.underPageBackgroundColor
         window.collectionBehavior = [.fullScreenPrimary]

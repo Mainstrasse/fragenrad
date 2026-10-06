@@ -1,7 +1,7 @@
 {
-  "name": "Hauskirche Fragenrad",
+  "name": "Kleingruppen-Fragenrad",
   "short_name": "Fragenrad",
-  "description": "Glücksrad-Fragenspiel für die Hauskirche mit Freizeit-, Sport- und Church-Fragen.",
+  "description": "Glücksrad-Fragenspiel für Kleingruppen mit Fragen zu Freizeit, Sport, Church, Familie, Bibel, Zukunft und mehr.",
   "lang": "de",
   "start_url": "./",
   "scope": "./",
