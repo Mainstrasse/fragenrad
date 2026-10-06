@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kleingruppen-Fragenspiel ist umgezogen</title>
+<meta http-equiv="refresh" content="2; url=https://kg-fragenspiel.web.app/">
+<style>
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 16px;
+    font-family: system-ui, sans-serif; background: #1b1430; color: #f7f1ff; text-align: center; }
+  a { color: #ffb347; font-weight: 700; }
+</style>
+</head>
+<body>
+  <div>
+    <h1>Das Kleingruppen-Fragenspiel ist umgezogen</h1>
+    <p>Neue Adresse: <a href="https://kg-fragenspiel.web.app/">kg-fragenspiel.web.app</a></p>
+    <p>Du wirst gleich weitergeleitet.</p>
+  </div>
+<script>
+  // Alte Offline-Kopie entfernen, damit nicht mehr die alte Version erscheint
+  (async () => {
+    try {
+      for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister();
+      for (const k of await caches.keys()) await caches.delete(k);
+    } catch (e) {}
+    location.replace('https://kg-fragenspiel.web.app/');
+  })();
+</script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-// Kleingruppen-Fragenrad als Mac-App: ein Fenster, das die mitgelieferte Webseite anzeigt.
+// Kleingruppen-Fragenspiel als Mac-App: ein Fenster, das die mitgelieferte Webseite anzeigt.
 import Cocoa
 import WebKit
 
@@ -22,7 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
             contentRect: NSRect(x: 0, y: 0, width: 1280, height: 800),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered, defer: false)
-        window.title = "Kleingruppen-Fragenrad"
+        window.title = "Kleingruppen-Fragenspiel"
         window.minSize = NSSize(width: 820, height: 560)
         window.backgroundColor = webView.underPageBackgroundColor
         window.collectionBehavior = [.fullScreenPrimary]
@@ -88,11 +88,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
         let main = NSMenu()
 
         let app = NSMenu()
-        app.addItem(withTitle: "Über Fragenrad", action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
+        app.addItem(withTitle: "Über Fragenspiel", action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
         app.addItem(.separator())
-        app.addItem(withTitle: "Fragenrad ausblenden", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
+        app.addItem(withTitle: "Fragenspiel ausblenden", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
         app.addItem(.separator())
-        app.addItem(withTitle: "Fragenrad beenden", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        app.addItem(withTitle: "Fragenspiel beenden", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         add(app, to: main)
 
         let edit = NSMenu(title: "Bearbeiten")

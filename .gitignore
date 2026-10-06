@@ -1,2 +1,4 @@
 mac/build/
 .DS_Store
+site/
+.firebase/

@@ -1,4 +1,4 @@
-name: Webseite veröffentlichen
+name: Weiterleitung zur neuen Adresse veröffentlichen
 
 on:
   push:
@@ -22,11 +22,11 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - name: Nur die Spieldateien zusammenstellen
+      # Das Spiel liegt jetzt auf https://kg-fragenspiel.web.app – hier nur noch die Weiterleitung
+      - name: Weiterleitung zusammenstellen
         run: |
           mkdir site
-          cp index.html manifest.webmanifest sw.js confetti.min.js .nojekyll site/
-          cp -R icons site/
+          cp redirect/index.html redirect/sw.js .nojekyll site/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site

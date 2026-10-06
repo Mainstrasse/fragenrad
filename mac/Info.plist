@@ -2,10 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>CFBundleName</key><string>Fragenrad</string>
-  <key>CFBundleDisplayName</key><string>Fragenrad</string>
+  <key>CFBundleName</key><string>Fragenspiel</string>
+  <key>CFBundleDisplayName</key><string>Fragenspiel</string>
   <key>CFBundleIdentifier</key><string>de.hauskirche.fragenrad</string>
-  <key>CFBundleExecutable</key><string>Fragenrad</string>
+  <key>CFBundleExecutable</key><string>Fragenspiel</string>
   <key>CFBundleIconFile</key><string>AppIcon</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>1.0</string>
@@ -15,6 +15,6 @@
   <key>LSApplicationCategoryType</key><string>public.app-category.entertainment</string>
   <key>NSHighResolutionCapable</key><true/>
   <key>NSPrincipalClass</key><string>NSApplication</string>
-  <key>NSHumanReadableCopyright</key><string>Kleingruppen-Fragenrad</string>
+  <key>NSHumanReadableCopyright</key><string>Kleingruppen-Fragenspiel</string>
 </dict>
 </plist>
