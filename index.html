@@ -182,6 +182,24 @@
   .timer.done { background: var(--accent); animation: timer-pulse 1s ease-in-out 3; }
   .timer.done .hint { color: var(--accent-ink); }
   @keyframes timer-pulse { 50% { transform: scale(1.08); } }
+  .spot {
+    position: fixed; inset: 0; z-index: 40; pointer-events: none;
+    display: grid; place-items: center; text-align: center; padding: 16px;
+    background: radial-gradient(circle at 50% 48%, rgba(255, 214, 140, .22) 0, rgba(12, 8, 24, .88) 42%);
+    animation: spot 1.8s ease forwards;
+  }
+  .spot[hidden] { display: none; }
+  .spot-label { color: var(--accent); font-weight: 900; letter-spacing: 3px; text-transform: uppercase; font-size: clamp(1rem, 2vw, 1.6rem); }
+  .spot-name {
+    font-weight: 900; font-size: clamp(3rem, 10vw, 8.5rem); line-height: 1.05; color: #fff;
+    text-shadow: 0 0 40px rgba(255, 179, 71, .55);
+    animation: spot-name 1.8s cubic-bezier(.2, .9, .3, 1.2) forwards;
+    overflow-wrap: anywhere;
+  }
+  @keyframes spot { 0% { opacity: 0; } 12%, 80% { opacity: 1; } 100% { opacity: 0; } }
+  @keyframes spot-name { 0% { transform: scale(.6); } 25%, 100% { transform: scale(1); } }
+  .joker { margin-left: 8px; font-weight: 800; color: #7a6d86; white-space: nowrap; }
+  .joker.used { text-decoration: line-through; opacity: .7; }
   .glow {
     position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0;
     background: radial-gradient(900px 600px at 50% 45%, var(--glow, transparent), transparent 70%);
@@ -191,6 +209,7 @@
   header, main, footer { position: relative; z-index: 1; }
   @media (prefers-reduced-motion: reduce) {
     .glow.on { animation-duration: .6s; }
+    .spot-name { animation: none; }
     .timer.done { animation: none; }
   }
 
@@ -304,6 +323,12 @@
 <body>
 
 <div class="glow" id="glow"></div>
+<div class="spot" id="spot" hidden>
+  <div>
+    <div class="spot-label">Jetzt ist dran</div>
+    <div class="spot-name" id="spotName"></div>
+  </div>
+</div>
 
 <header>
   <div class="brand-row">
@@ -397,6 +422,8 @@
       <legend>Ablauf &amp; Effekte</legend>
       <div class="toggles">
         <label><input type="checkbox" id="autoSpin"> Rad dreht sich nach „Person ziehen“ von selbst</label>
+        <label><input type="checkbox" id="spotOn"> Name im Rampenlicht</label>
+        <label><input type="checkbox" id="jokerOn"> Joker: jede Person darf einmal pro Runde eine andere Frage ziehen</label>
         <label><input type="checkbox" id="fireworks"> Feuerwerk beim Aufdecken</label>
         <label><input type="checkbox" id="glowOn"> Farbschimmer der Rubrik</label>
         <label><input type="checkbox" id="sound"> Töne</label>
@@ -651,7 +678,7 @@ const newId = () => 'g' + Date.now().toString(36) + Math.random().toString(36).s
 const strArr = v => Array.isArray(v) ? v.filter(x => typeof x === 'string') : [];
 const FRESH = !Object.keys(load()).length;
 const S = Object.assign({
-  cats: Object.keys(CATS), levels: [1, 2], fireworks: true, autoSpin: false, glow: true, sound: true, timer: 60, timerAuto: false,
+  cats: Object.keys(CATS), levels: [1, 2], fireworks: true, autoSpin: false, spotlight: true, joker: true, glow: true, sound: true, timer: 60, timerAuto: false,
   custom: [], groups: [], active: null
 }, load());
 // Übernahme aus der Version ohne Gruppen
@@ -686,11 +713,11 @@ function write(ref, data) {
 function saveLocal() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 function saveGroup(g = G()) {
   saveLocal();
-  if (cloud) write(cloud.groups.doc(g.id), { name: g.name, names: g.names, spoke: g.spoke, used: g.used, created: g.created || 0 });
+  if (cloud) write(cloud.groups.doc(g.id), { name: g.name, names: g.names, spoke: g.spoke, used: g.used, jokers: g.jokers || [], created: g.created || 0 });
 }
 function saveProfile() {
   saveLocal();
-  if (cloud) write(cloud.profile, { cats: S.cats, catsSeen: S.catsSeen, levels: S.levels, fireworks: S.fireworks, autoSpin: S.autoSpin, glow: S.glow, sound: S.sound, timer: S.timer, timerAuto: S.timerAuto, custom: S.custom, active: S.active });
+  if (cloud) write(cloud.profile, { cats: S.cats, catsSeen: S.catsSeen, levels: S.levels, fireworks: S.fireworks, autoSpin: S.autoSpin, spotlight: S.spotlight, joker: S.joker, glow: S.glow, sound: S.sound, timer: S.timer, timerAuto: S.timerAuto, custom: S.custom, active: S.active });
 }
 
 async function connectCloud() {
@@ -708,7 +735,7 @@ async function connectCloud() {
     if (Array.isArray(d.levels)) S.levels = d.levels.filter(l => LEVELS[l]);
     if (typeof d.fireworks === 'boolean') S.fireworks = d.fireworks;
     if (typeof d.autoSpin === 'boolean') S.autoSpin = d.autoSpin;
-    ['glow', 'sound', 'timerAuto'].forEach(k => { if (typeof d[k] === 'boolean') S[k] = d[k]; });
+    ['glow', 'sound', 'timerAuto', 'spotlight', 'joker'].forEach(k => { if (typeof d[k] === 'boolean') S[k] = d[k]; });
     if ([0, 30, 60, 90, 120, 180].includes(d.timer)) S.timer = d.timer;
     if (Array.isArray(d.custom)) S.custom = d.custom.filter(q => q && typeof q.id === 'string' && CATS[q.c] && LEVELS[q.l] && typeof q.t === 'string');
     if (typeof d.active === 'string') S.active = d.active;
@@ -717,7 +744,7 @@ async function connectCloud() {
   else S.groups = gs.docs.map(x => {
     const d = x.data();
     return { id: x.id, name: typeof d.name === 'string' && d.name ? renameDefault(d.name) : 'Gruppe',
-      names: strArr(d.names), spoke: strArr(d.spoke), used: strArr(d.used), created: +d.created || 0 };
+      names: strArr(d.names), spoke: strArr(d.spoke), used: strArr(d.used), jokers: strArr(d.jokers), created: +d.created || 0 };
   }).sort((a, b) => a.created - b.created);
   if (!S.groups.some(g => g.id === S.active)) S.active = S.groups[0].id;
   saveLocal();
@@ -819,6 +846,13 @@ function reveal(c) {
     if (person) {
       $('qFor').append('Frage an ');
       const b = document.createElement('b'); b.textContent = person; $('qFor').append(b);
+      if (S.joker) {
+        const j = document.createElement('span');
+        const used = jokers().includes(person);
+        j.className = 'joker' + (used ? ' used' : '');
+        j.textContent = used ? '🃏 Joker eingesetzt' : '🃏 Joker frei (A)';
+        $('qFor').append(j);
+      }
     }
     card.classList.add('flipped');
     if (isNarrow()) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -834,14 +868,21 @@ function reveal(c) {
 function other() {
   if (spinning) return;
   if (!current) { spin(); return; }
+  if (S.joker && person) {
+    if (jokers().includes(person)) { toast('🃏 ' + person + ' hat den Joker in dieser Runde schon eingesetzt.'); return; }
+    jokers().push(person);
+    saveGroup();
+    toast('🃏 ' + person + ' setzt den Joker ein');
+  }
   reveal(current.c);
 }
+const jokers = () => G().jokers || (G().jokers = []);
 
 // ---------- Personen ----------
 function drawPerson() {
   if (!G().names.length) { toast('Tragt zuerst Namen in den Einstellungen ein.'); openSettings(); $('names').focus(); return; }
   let pool = G().names.filter(n => !G().spoke.includes(n));
-  if (!pool.length) { G().spoke = []; pool = G().names.slice(); toast('Alle waren einmal dran – neue Runde!'); }
+  if (!pool.length) { G().spoke = []; G().jokers = []; pool = G().names.slice(); toast('Alle waren einmal dran – neue Runde!'); }
   const chosen = pool[Math.floor(Math.random() * pool.length)];
   // Die alte Frage verschwindet, sobald eine neue Person gezogen wird
   $('card').classList.remove('flipped');
@@ -865,8 +906,10 @@ function drawPerson() {
       saveGroup();
       $('btnPerson').disabled = false;
       updateStatus();
-      // Auf Wunsch dreht sich das Rad eine Sekunde später von selbst
-      if (S.autoSpin) setTimeout(() => { if (!$('dlg').open) spin(); }, 1000);
+      // Erst das Rampenlicht, dann auf Wunsch eine Sekunde später das Rad
+      spotlight(chosen, () => {
+        if (S.autoSpin) setTimeout(() => { if (!$('dlg').open) spin(); }, S.spotlight ? 300 : 1000);
+      });
     }
   })();
 }
@@ -913,6 +956,7 @@ function tone(freq, dur, { type = 'sine', gain = 0.2, delay = 0, attack = 0.005 
   o.stop(t + dur + 0.05);
 }
 const sfx = {
+  spot: () => { tone(392, 0.25, { gain: 0.12 }); tone(587.33, 0.9, { gain: 0.12, delay: 0.16 }); tone(783.99, 1.1, { gain: 0.08, delay: 0.16 }); },
   tick: () => tone(1700, 0.03, { type: 'square', gain: 0.04, attack: 0.001 }),
   roll: () => tone(190, 0.07, { type: 'triangle', gain: 0.14, attack: 0.002 }),
   reveal: () => {
@@ -938,6 +982,20 @@ function watchTicks(segAngle) {
     last = seg;
     requestAnimationFrame(frame);
   })();
+}
+
+// ---------- Name im Rampenlicht ----------
+function spotlight(name, then) {
+  if (!S.spotlight) { then(); return; }
+  const el = $('spot');
+  $('spotName').textContent = name;
+  el.hidden = false;
+  // Animation bei jedem Aufruf neu starten
+  el.style.animation = 'none'; $('spotName').style.animation = 'none';
+  void el.offsetWidth;
+  el.style.animation = ''; $('spotName').style.animation = '';
+  sfx.spot();
+  setTimeout(() => { el.hidden = true; then(); }, 1800);
 }
 
 // ---------- Farbschimmer ----------
@@ -1080,6 +1138,8 @@ function openSettings() {
   $('fireworks').checked = S.fireworks;
   $('autoSpin').checked = S.autoSpin;
   $('glowOn').checked = S.glow;
+  $('spotOn').checked = S.spotlight;
+  $('jokerOn').checked = S.joker;
   $('sound').checked = S.sound;
   $('timerSel').value = String(S.timer);
   $('timerAuto').checked = S.timerAuto;
@@ -1124,6 +1184,8 @@ function applySettings() {
   S.fireworks = $('fireworks').checked;
   S.autoSpin = $('autoSpin').checked;
   S.glow = $('glowOn').checked;
+  S.spotlight = $('spotOn').checked;
+  S.joker = $('jokerOn').checked;
   S.sound = $('sound').checked;
   S.timer = +$('timerSel').value;
   S.timerAuto = $('timerAuto').checked;
@@ -1153,7 +1215,7 @@ $('groupName').addEventListener('input', () => {
 });
 $('btnNewGroup').onclick = () => {
   applyGroupFields();
-  const g = { id: newId(), name: 'Neue Gruppe', names: [], spoke: [], used: [], created: Date.now() };
+  const g = { id: newId(), name: 'Neue Gruppe', names: [], spoke: [], used: [], jokers: [], created: Date.now() };
   S.groups.push(g);
   saveGroup(g);
   switchGroup(g.id);
@@ -1187,7 +1249,7 @@ $('btnReset').onclick = () => {
   }
   clearTimeout(resetArmed); resetArmed = null;
   b.textContent = '↺ Gespielte Fragen & Personen dieser Gruppe zurücksetzen';
-  G().used = []; G().spoke = [];
+  G().used = []; G().spoke = []; G().jokers = [];
   saveGroup(); refreshAll(); toast('Zurückgesetzt – alles ist wieder offen.');
 };
 
