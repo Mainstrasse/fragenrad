@@ -108,6 +108,15 @@
     border-top: 38px solid var(--accent);
     filter: drop-shadow(0 4px 4px rgba(0,0,0,.4));
     z-index: 2;
+    transform-origin: 50% 0;
+  }
+  /* Der Zeiger wird von jedem vorbeilaufenden Feld kurz zur Seite gedrückt und federt zurück */
+  .pointer.flick { animation: flick .22s ease-out; }
+  @keyframes flick {
+    0% { transform: translateX(-50%) rotate(0); }
+    25% { transform: translateX(-50%) rotate(-24deg); }
+    65% { transform: translateX(-50%) rotate(6deg); }
+    100% { transform: translateX(-50%) rotate(0); }
   }
   .hub {
     position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
@@ -208,6 +217,7 @@
   @keyframes glow { 15% { opacity: .55; } 100% { opacity: 0; } }
   header, main, footer { position: relative; z-index: 1; }
   @media (prefers-reduced-motion: reduce) {
+    .pointer.flick { animation: none; }
     .glow.on { animation-duration: .6s; }
     .spot-name { animation: none; }
     .timer.done { animation: none; }
@@ -426,6 +436,7 @@
         <label><input type="checkbox" id="jokerOn"> Joker: jede Person darf einmal pro Runde eine andere Frage ziehen</label>
         <label><input type="checkbox" id="fireworks"> Feuerwerk beim Aufdecken</label>
         <label><input type="checkbox" id="glowOn"> Farbschimmer der Rubrik</label>
+        <label><input type="checkbox" id="wobbleOn"> Wippender Zeiger</label>
         <label><input type="checkbox" id="sound"> Töne</label>
       </div>
       <p class="hint" style="margin-top:10px">Damit die Töne bei Zoom ankommen: beim Bildschirmteilen „Ton teilen“ anhaken.</p>
@@ -678,7 +689,7 @@ const newId = () => 'g' + Date.now().toString(36) + Math.random().toString(36).s
 const strArr = v => Array.isArray(v) ? v.filter(x => typeof x === 'string') : [];
 const FRESH = !Object.keys(load()).length;
 const S = Object.assign({
-  cats: Object.keys(CATS), levels: [1, 2], fireworks: true, autoSpin: false, spotlight: true, joker: true, glow: true, sound: true, timer: 60, timerAuto: false,
+  cats: Object.keys(CATS), levels: [1, 2], fireworks: true, autoSpin: false, spotlight: true, joker: true, wobble: true, glow: true, sound: true, timer: 60, timerAuto: false,
   custom: [], groups: [], active: null
 }, load());
 // Übernahme aus der Version ohne Gruppen
@@ -717,7 +728,7 @@ function saveGroup(g = G()) {
 }
 function saveProfile() {
   saveLocal();
-  if (cloud) write(cloud.profile, { cats: S.cats, catsSeen: S.catsSeen, levels: S.levels, fireworks: S.fireworks, autoSpin: S.autoSpin, spotlight: S.spotlight, joker: S.joker, glow: S.glow, sound: S.sound, timer: S.timer, timerAuto: S.timerAuto, custom: S.custom, active: S.active });
+  if (cloud) write(cloud.profile, { cats: S.cats, catsSeen: S.catsSeen, levels: S.levels, fireworks: S.fireworks, autoSpin: S.autoSpin, spotlight: S.spotlight, joker: S.joker, wobble: S.wobble, glow: S.glow, sound: S.sound, timer: S.timer, timerAuto: S.timerAuto, custom: S.custom, active: S.active });
 }
 
 async function connectCloud() {
@@ -735,7 +746,7 @@ async function connectCloud() {
     if (Array.isArray(d.levels)) S.levels = d.levels.filter(l => LEVELS[l]);
     if (typeof d.fireworks === 'boolean') S.fireworks = d.fireworks;
     if (typeof d.autoSpin === 'boolean') S.autoSpin = d.autoSpin;
-    ['glow', 'sound', 'timerAuto', 'spotlight', 'joker'].forEach(k => { if (typeof d[k] === 'boolean') S[k] = d[k]; });
+    ['glow', 'sound', 'timerAuto', 'spotlight', 'joker', 'wobble'].forEach(k => { if (typeof d[k] === 'boolean') S[k] = d[k]; });
     if ([0, 30, 60, 90, 120, 180].includes(d.timer)) S.timer = d.timer;
     if (Array.isArray(d.custom)) S.custom = d.custom.filter(q => q && typeof q.id === 'string' && CATS[q.c] && LEVELS[q.l] && typeof q.t === 'string');
     if (typeof d.active === 'string') S.active = d.active;
@@ -968,17 +979,20 @@ const sfx = {
 // Browser erlauben Ton erst nach dem ersten Klick oder Tastendruck
 ['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, () => audio(), { once: true }));
 
-// Klacken, sobald ein Feld am Zeiger vorbeiläuft
+// Klacken und Zeiger-Wippen, sobald ein Feld am Zeiger vorbeiläuft
 function watchTicks(segAngle) {
-  if (!S.sound) return;
-  const rotor = $('rotor');
+  if (!S.sound && !S.wobble) return;
+  const rotor = $('rotor'), pointer = document.querySelector('.pointer');
   let last = null;
   (function frame() {
     if (!spinning) return;
     const m = new DOMMatrixReadOnly(getComputedStyle(rotor).transform);
     const deg = (Math.atan2(m.b, m.a) * 180 / Math.PI + 360) % 360;
     const seg = Math.floor(deg / segAngle);
-    if (last !== null && seg !== last) sfx.tick();
+    if (last !== null && seg !== last) {
+      if (S.sound) sfx.tick();
+      if (S.wobble) { pointer.classList.remove('flick'); void pointer.offsetWidth; pointer.classList.add('flick'); }
+    }
     last = seg;
     requestAnimationFrame(frame);
   })();
@@ -1140,6 +1154,7 @@ function openSettings() {
   $('glowOn').checked = S.glow;
   $('spotOn').checked = S.spotlight;
   $('jokerOn').checked = S.joker;
+  $('wobbleOn').checked = S.wobble;
   $('sound').checked = S.sound;
   $('timerSel').value = String(S.timer);
   $('timerAuto').checked = S.timerAuto;
@@ -1186,6 +1201,7 @@ function applySettings() {
   S.glow = $('glowOn').checked;
   S.spotlight = $('spotOn').checked;
   S.joker = $('jokerOn').checked;
+  S.wobble = $('wobbleOn').checked;
   S.sound = $('sound').checked;
   S.timer = +$('timerSel').value;
   S.timerAuto = $('timerAuto').checked;
