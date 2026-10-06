@@ -447,14 +447,9 @@
         <label>Zeit pro Antwort
           <select id="timerSel" style="width:auto;padding:4px 8px">
             <option value="0">aus</option>
-            <option value="30">30 Sekunden</option>
-            <option value="60">1 Minute</option>
-            <option value="90">1,5 Minuten</option>
-            <option value="120">2 Minuten</option>
-            <option value="180">3 Minuten</option>
           </select>
         </label>
-        <label><input type="checkbox" id="timerAuto"> startet von selbst, wenn die Frage erscheint</label>
+        <label><input type="checkbox" id="timerAuto"> Timer läuft automatisch los, sobald die Frage erscheint</label>
       </div>
     </fieldset>
     <fieldset>
@@ -689,7 +684,7 @@ const newId = () => 'g' + Date.now().toString(36) + Math.random().toString(36).s
 const strArr = v => Array.isArray(v) ? v.filter(x => typeof x === 'string') : [];
 const FRESH = !Object.keys(load()).length;
 const S = Object.assign({
-  cats: Object.keys(CATS), levels: [1, 2], fireworks: true, autoSpin: false, spotlight: true, joker: true, wobble: true, glow: true, sound: true, timer: 60, timerAuto: false,
+  cats: Object.keys(CATS), levels: [1, 2], fireworks: true, autoSpin: false, spotlight: true, joker: true, wobble: true, glow: true, sound: true, timer: 60, timerAuto: true,
   custom: [], groups: [], active: null
 }, load());
 // Übernahme aus der Version ohne Gruppen
@@ -747,7 +742,7 @@ async function connectCloud() {
     if (typeof d.fireworks === 'boolean') S.fireworks = d.fireworks;
     if (typeof d.autoSpin === 'boolean') S.autoSpin = d.autoSpin;
     ['glow', 'sound', 'timerAuto', 'spotlight', 'joker', 'wobble'].forEach(k => { if (typeof d[k] === 'boolean') S[k] = d[k]; });
-    if ([0, 30, 60, 90, 120, 180].includes(d.timer)) S.timer = d.timer;
+    if (Number.isInteger(d.timer) && d.timer >= 0 && d.timer <= TIMER_MAX && d.timer % 10 === 0) S.timer = d.timer;
     if (Array.isArray(d.custom)) S.custom = d.custom.filter(q => q && typeof q.id === 'string' && CATS[q.c] && LEVELS[q.l] && typeof q.t === 'string');
     if (typeof d.active === 'string') S.active = d.active;
   } else saveProfile();
@@ -1022,6 +1017,18 @@ function shimmer(color) {
 }
 
 // ---------- Antwort-Timer ----------
+const TIMER_MAX = 300;   // 5 Minuten, einstellbar in 10-Sekunden-Schritten
+function fillTimerOptions() {
+  const sel = $('timerSel');
+  if (sel.options.length > 1) return;
+  for (let t = 10; t <= TIMER_MAX; t += 10) {
+    const m = Math.floor(t / 60), sec = t % 60;
+    const o = document.createElement('option');
+    o.value = t;
+    o.textContent = m ? m + ' Min' + (sec ? ' ' + sec + ' s' : '') : sec + ' Sekunden';
+    sel.appendChild(o);
+  }
+}
 const tm = { id: null, left: 0, end: 0 };
 const RING = 2 * Math.PI * 18;
 function renderTimer() {
@@ -1156,6 +1163,7 @@ function openSettings() {
   $('jokerOn').checked = S.joker;
   $('wobbleOn').checked = S.wobble;
   $('sound').checked = S.sound;
+  fillTimerOptions();
   $('timerSel').value = String(S.timer);
   $('timerAuto').checked = S.timerAuto;
   $('newCat').innerHTML = Object.entries(CATS).map(([id, c]) => `<option value="${id}">${c.emoji} ${c.name}</option>`).join('');
