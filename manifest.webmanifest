@@ -1,7 +1,7 @@
 {
   "name": "Kleingruppen-Fragenspiel",
   "short_name": "Fragenspiel",
-  "description": "Glücksrad-Fragenspiel für Kleingruppen mit Fragen zu Freizeit, Sport, Church, Familie, Bibel, Zukunft und mehr.",
+  "description": "Das Fragenspiel für eure Kleingruppe: Rad drehen, Frage ziehen, ins Gespräch kommen.",
   "lang": "de",
   "start_url": "./",
   "scope": "./",
